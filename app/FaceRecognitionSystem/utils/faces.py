@@ -32,18 +32,15 @@ models = [
 #       saveToElk: biến đánh dấu xem cớ lưu lên elk hay không
 #output: vector emmbeding 512 chiều
 #created by dvanh(30/03/2023)
-def CreateEmbeding(img, code,name ,saveToElk=True):
+def CreateEmbeding(img, code,name ):
     vector =  DeepFace.represent(img, model_name = models[2],detector_backend='mediapipe')
-    if saveToElk:
-        doc ={
+    doc ={
             'face_name':name,
             'face_code':code,
             'face_encoding':vector[0].get('embedding')
         }   
-        print(vector)
-        es.index(index=config['DEFAULT']['db_index'],document=doc)
-        
-    return vector
+    response = es.index(index=config['DEFAULT']['db_index'],document=doc)
+    return response
 
 
 
