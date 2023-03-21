@@ -1,5 +1,6 @@
+
 from fastapi import APIRouter
-from ..entities.users import Users
+from entities.users import Users
 router = APIRouter()
 
 
