@@ -4,24 +4,20 @@ from fastapi.security import HTTPBearer
 from typing import Union, Any
 from fastapi import Depends, HTTPException
 from pydantic import ValidationError
-
 SECURITY_ALGORITHM = 'HS256'
 SECRET_KEY = '123456'
 
 reusable_oauth2 = HTTPBearer(
     scheme_name='Authorization'
 )
-def verify_password(username, password):
-    if username == 'admin' and password == 'admin':
-        return True
-    return False
 
-def generate_token(username: Union[str, Any]) -> str:
+
+def generate_token(payload) -> str:
     expire = datetime.utcnow() + timedelta(
         seconds=60 * 60 * 24 * 3  # Expired after 3 days
     )
     to_encode = {
-        "exp": expire, "username": username
+        "exp": expire, 'payload':payload
     }
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=SECURITY_ALGORITHM)
     return encoded_jwt
