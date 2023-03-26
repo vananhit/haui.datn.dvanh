@@ -1,8 +1,8 @@
 import pyodbc
-server = 'DESKTOP-H1KK6UA'
-database = 'CheckInDB'
-username = 'dvanh'
-password = '12345678@Abc'
-driver = '{ODBC Driver 17 for SQL Server}'
-cnxn = pyodbc.connect(f"DRIVER={driver};SERVER={server};DATABASE={database};UID={username};PWD={password}")
+import configparser
+config = configparser.ConfigParser()
+config.read('example.ini')
+
+
+cnxn = pyodbc.connect(f"DRIVER={config['SQL']['driver']};SERVER={config['SQL']['server']};DATABASE={config['SQL']['database']};UID={config['SQL']['username']};PWD={config['SQL']['password']}")
 cursor = cnxn.cursor()

@@ -18,7 +18,7 @@ def verify_password(username, password, is_master_account):
                 'IsMasterAccount': True
             }
     # Tìm tk trong bảng account
-    user = account_repo.find_customer_by_username_and_password(
+    user = account_repo.find_account_by_username_and_password(
         username=username, password=password)
 
     if user:

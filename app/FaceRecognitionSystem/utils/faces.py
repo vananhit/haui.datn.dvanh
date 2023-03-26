@@ -1,7 +1,7 @@
 from  deepface import DeepFace
 from elasticsearch import Elasticsearch, helpers
-import configparser
 import time
+import configparser
 config = configparser.ConfigParser()
 config.read('example.ini')
 es = Elasticsearch(

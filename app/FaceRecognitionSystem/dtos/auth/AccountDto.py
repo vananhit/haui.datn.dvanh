@@ -1,7 +1,10 @@
 from pydantic import BaseModel
 
 class AccountDto(BaseModel):
-    ID:str
+    CustomerID:str
     UserName:str
+    Password:str
+    Email:str
     FirstName:str
     LastName:str
+    Address:str
