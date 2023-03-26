@@ -32,23 +32,37 @@ models = [
 #       saveToElk: biến đánh dấu xem cớ lưu lên elk hay không
 #output: vector emmbeding 512 chiều
 #created by dvanh(30/03/2023)
-def CreateEmbeding(img, code,name ):
+def CreateEmbeding(img, code,name,app_id=None ):
     vector =  DeepFace.represent(img, model_name = models[2],detector_backend='mediapipe')
     doc ={
             'face_name':name,
             'face_code':code,
             'face_encoding':vector[0].get('embedding')
         }   
-    response = es.index(index=config['DEFAULT']['db_index'],document=doc)
+    index = config['DEFAULT']['db_index']
+    index = index+"_"+ app_id if app_id else ''
+    response = es.index(index=index,document=doc)
     return response
 
 
+#Xoá 1 embedding trên elastic search
+def DeleteEmbeding(index_name,doc_id):
+    # Xóa bản ghi theo _id
+    response = es.delete(index=index_name, id=doc_id)
+
+    # In kết quả xóa
+    if response["result"] == "deleted":
+        print(f"Đã xóa bản ghi có _id = {doc_id} trên index {index_name}.")
+        return True
+    else:
+        print(f"Không tìm thấy bản ghi có _id = {doc_id} trên index {index_name}.")
+        return False
 
 
 #Tìm xem một khuôn mặt có trong cơ sở dữ liệu của elastic seach hay không
 #created by:dvanh(21/03/2023)
 #imput image dạng base65, numpy array, img path
-def  FindFace(img):
+def  FindFace(img,app_id):
     t=time.time()
     face_encoding = DeepFace.represent(img, model_name = models[2],detector_backend='mediapipe')
     query={
@@ -70,7 +84,9 @@ def  FindFace(img):
         }
     ]
     size=1
-    response  = es.search(query=query,index=config['DEFAULT']['db_index'],sort=sort,size=size)
+    index=index=config['DEFAULT']['db_index']
+    index = index+"_"+ app_id if app_id else ''
+    response  = es.search(query=query,index=index,sort=sort,size=size)
     print(time.time()-t)
 
     if len(response['hits']['hits'])==0:

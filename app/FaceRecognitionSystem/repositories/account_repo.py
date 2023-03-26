@@ -63,3 +63,9 @@ def get_accounts_by_customer_id(customer_id, skip, take, search):
         cursor.execute(count_sql, customer_id, q, q, q, q)
         ans['total'] = cursor.fetchval()
     return ans
+
+#Tìm tài khoản theo id
+def find_by_id(account_id):
+    sql = "SELECT * FROM Accounts WHERE ID =?"
+    cursor.execute(sql,account_id)
+    return cursor.fetchone()

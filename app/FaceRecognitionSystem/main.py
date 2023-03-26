@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import customers, auth,accounts
+from routers import customers, auth,accounts,faces
 from fastapi import FastAPI
 app = FastAPI(openapi_url="/api/v1/openapi.json",
               docs_url="/api/v1/docs",
@@ -19,8 +19,6 @@ app.add_middleware(
 app.include_router(customers.router, prefix='/api/v1')
 app.include_router(auth.router, prefix='/api/v1')
 app.include_router(accounts.router, prefix='/api/v1')
-
-
-
+app.include_router(faces.router, prefix='/api/v1')
 
 
