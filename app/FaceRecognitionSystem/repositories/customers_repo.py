@@ -26,6 +26,15 @@ def create_customer(cus:CreateCustomerDto):
     param=(str(uuid.uuid4()), cus.CustomerName,cus.Address,cus.Phone,cus.Email,cus.MasterUserName,cus.MasterPassword,datetime.datetime.now())
     cursor.execute(sql,param)
     cursor.commit()
-    return param
+    return {
+        'ID':param[0],
+        'CustomerName':param[1],
+        'Address':param[2],
+        'Phone':param[3],
+        'Email':param[4],
+        'MasterUserName':param[5],
+        'MasterPassword':param[6],
+        'CreatedDate':param[7]  
+    }
 
 
