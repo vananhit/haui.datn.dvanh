@@ -1,22 +1,33 @@
 <template>
- 
+  <MainLayout> </MainLayout>
 </template>
 <script>
-
+import MainLayout from "@/layouts/MainLayout.vue";
+import { httpClient } from "@/apis/httpclient";
 export default {
-  name: 'App',
+  name: "App",
   components: {
-  }
-}
+    MainLayout,
+  },
+  async created() {
+    // //Kiểm tra nếu chưa đăng nhập thì đưa đến trang đăng nhập
+    // let token = localStorage.getItem("token");
+    // if (token) {
+    //   try {
+    //     await httpClient.post("auth/authen");
+    //   } catch (e) {
+    //     this.$router.push({ name: "Login" });
+    //   }
+    // } else {
+    //   this.$router.push({ name: "Login" });
+    // }
+    this.$router.push({name:'FaceRecognition'})
+  },
+};
 </script>
 
 <style>
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  height: 100vh;
 }
 </style>

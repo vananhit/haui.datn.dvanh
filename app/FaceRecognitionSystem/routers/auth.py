@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from dtos.auth.LoginDto import LoginDto
-from utils.security import generate_token,get_current_user
+from utils.security import generate_token,get_current_user,validate_token
 from services import auth_service
+from models.CurrentUser import CurrentUser
 router = APIRouter()
 
 
@@ -17,5 +18,10 @@ def login(user: LoginDto):
     else:
         raise HTTPException(status_code=404, detail="User not found")
 
+#xác minh người dùng
+@router.post('/auth/authen',tags=["auth"],dependencies=[Depends(validate_token)])
+def authen(current_user=Depends(get_current_user)):
+    user = CurrentUser.parse_obj(current_user)
+    return user
 
 
