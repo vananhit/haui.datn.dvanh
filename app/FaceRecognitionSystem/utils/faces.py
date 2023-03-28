@@ -63,39 +63,41 @@ def DeleteEmbeding(index_name,doc_id):
 #created by:dvanh(21/03/2023)
 #imput image dạng base65, numpy array, img path
 def  FindFace(img,app_id):
-    t=time.time()
-    face_encoding = DeepFace.represent(img, model_name = models[2],detector_backend='mediapipe')
-    query={
-            "script_score": {
-                "query": {
-                    "match_all": {}
-                },
-                "script": {
-                    "source": "cosineSimilarity(params.query_vector, 'face_encoding')",
-                    "params": {
-                    "query_vector": face_encoding[0].get('embedding')
+    try:
+        t=time.time()
+        face_encoding = DeepFace.represent(img, model_name = models[2],detector_backend='mediapipe')
+        query={
+                "script_score": {
+                    "query": {
+                        "match_all": {}
+                    },
+                    "script": {
+                        "source": "cosineSimilarity(params.query_vector, 'face_encoding')",
+                        "params": {
+                        "query_vector": face_encoding[0].get('embedding')
+                        }
                     }
-                }
-                }
-        }
-    sort=[
-        {
-        "_score":"DESC"
-        }
-    ]
-    size=1
-    index=index=config['DEFAULT']['db_index']
-    index = index+"_"+ app_id if app_id else ''
-    response  = es.search(query=query,index=index,sort=sort,size=size)
-    print(time.time()-t)
+                    }
+            }
+        sort=[
+            {
+            "_score":"DESC"
+            }
+        ]
+        size=1
+        index=index=config['DEFAULT']['db_index']
+        index = index+"_"+ app_id if app_id else ''
+        response  = es.search(query=query,index=index,sort=sort,size=size)
+        print(time.time()-t)
 
-    if len(response['hits']['hits'])==0:
-        return None
-    
-    return{
-        'face_score':response['hits']['hits'][0]['_score'],# Độ chính xác 0->1
-        'face_name':response['hits']['hits'][0]['_source']['face_name'],#Tên người đó
-        'face_code':response['hits']['hits'][0]['_source']['face_code'],#Mã định danh
-    }
-
+        if len(response['hits']['hits'])==0:
+            return None
+        
+        return{
+            'face_score':response['hits']['hits'][0]['_score'],# Độ chính xác 0->1
+            'face_name':response['hits']['hits'][0]['_source']['face_name'],#Tên người đó
+            'face_code':response['hits']['hits'][0]['_source']['face_code'],#Mã định danh
+        }
+    except Exception as e:
+        print(f"FindFace:{e}")
 

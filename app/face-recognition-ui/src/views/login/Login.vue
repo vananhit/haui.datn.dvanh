@@ -73,7 +73,7 @@ export default {
       }catch(e){
         //tài khoản chưa đăng ký
         console.log(e)
-        if(e.response.status==404){
+        if(e?.response?.status==404){
           alert("Tài khoản chưa đăng ký")
         }
       }
