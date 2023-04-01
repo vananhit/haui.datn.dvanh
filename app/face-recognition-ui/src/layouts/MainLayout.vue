@@ -11,6 +11,10 @@
       </a-layout-header>
       <!-- content -->
       <a-layout-content style="margin: 0 16px">
+        <div id="app-loading">
+          <a-spin :spinning="true" :delay="500" :indicator="indicator">
+          </a-spin>
+        </div>
         <router-view></router-view>
       </a-layout-content>
       <a-layout-footer style="text-align: center"> </a-layout-footer>
@@ -26,9 +30,10 @@ import {
   FileOutlined,
   LaptopOutlined,
 } from "@ant-design/icons-vue";
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, h } from "vue";
 import SideBarVue from "./SideBar.vue";
 import TopNavVue from "./TopNav.vue";
+import { LoadingOutlined } from '@ant-design/icons-vue';
 export default defineComponent({
   components: {
     PieChartOutlined,
@@ -38,19 +43,35 @@ export default defineComponent({
     FileOutlined,
     LaptopOutlined,
     TopNavVue,
-    SideBarVue
+    SideBarVue,
+    LoadingOutlined
   },
   data() {
     return {
       collapsed: ref(false),
-     
+      indicator: h(LoadingOutlined, {
+        style: {
+          fontSize: "60px",
+        },
+        spin: true,
+      }),
     };
   },
 });
 </script>
-<style>
-
-
+<style lang="scss">
+#app-loading {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0px;
+  background-color: rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  visibility: hidden;
+}
 .site-layout .site-layout-background {
   background: #fff;
 }

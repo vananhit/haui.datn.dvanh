@@ -31,7 +31,7 @@ export default {
     margin-top: 24px;
 }
 .face-deetction{
-    width: 700px;
+    width:700px;
     margin-left: auto;
     margin-right: auto;
 

@@ -1,0 +1,20 @@
+<svg id="Component_2_28" data-name="Component 2 – 28" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24" height="24" viewBox="0 0 24 24">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="SVGID" width="24" height="24" fill="none"/>
+    </clipPath>
+    <filter id="Path_449" x="-1" y="0" width="26" height="26" filterUnits="userSpaceOnUse">
+      <feOffset dy="1" input="SourceAlpha"/>
+      <feGaussianBlur stdDeviation="1" result="blur"/>
+      <feFlood flood-opacity="0.161"/>
+      <feComposite operator="in" in2="blur"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+  </defs>
+  <g id="Group_16397" data-name="Group 16397" clip-path="url(#clip-path)">
+    <circle id="Ellipse_10" data-name="Ellipse 10" cx="7" cy="7" r="7" transform="translate(5 5)" fill="#ff4848"/>
+    <g transform="matrix(1, 0, 0, 1, 0, 0)" filter="url(#Path_449)">
+      <path id="Path_449-2" data-name="Path 449" d="M19.071,4.929A10,10,0,1,0,4.929,19.071,10,10,0,1,0,19.071,4.929ZM16.408,15.58a.585.585,0,1,1-.828.828L12,12.829,8.42,16.408a.585.585,0,1,1-.828-.828L11.171,12,7.592,8.42a.585.585,0,1,1,.828-.828L12,11.171l3.58-3.579a.585.585,0,1,1,.828.828L12.829,12Z" transform="translate(0 0)" fill="#fff"/>
+    </g>
+  </g>
+</svg>

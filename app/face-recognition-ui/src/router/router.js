@@ -30,6 +30,9 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
 
+  if(to.fullPath=="/"){
+    next({name:'FaceRecognition'})
+  }
   //xoá token nếu đăng xuất
   if(to.fullPath=="/logout"){
     localStorage.removeItem("token")

@@ -32,20 +32,67 @@ import { httpClient } from "@/apis/httpclient";
 import { notification } from "ant-design-vue";
 import { SmileOutlined } from "@ant-design/icons-vue";
 import { h } from "vue";
-import {socket} from "@/socket"
+
 export default {
   components: {
     SmileOutlined,
   },
   methods: {
-    openNotification() {
+    
+    /***
+     * lấy ảnh từ đối tượng canvas đưa nó vào trong 1 from data trả về một promise
+     */
+    getImageFromCanvans(mycanvas, quality = 0.5) {
+      return new Promise(function (resolve, reject) {
+        mycanvas.toBlob(
+          (blob) => {
+            try {
+              let formData = new FormData();
+              formData.append("image", blob, "image.jpg");
+              resolve(formData);
+            } catch (e) {
+              reject(e);
+            }
+          },
+          "image/jpeg",
+          quality
+        );
+      });
+    },
+
+    /***
+     * Gửi image lên server
+     */
+    async sendImageToService(canvasElement, quality = 0.5) {
+      try {
+       
+        //Lấy ảnh từ đối tương canvasElement
+        let formData = await this.getImageFromCanvans(canvasElement, quality);
+        //Upload ảnh lên server
+        let ans = await httpClient.post("/faces/upload", formData);
+        let data = ans.data
+        if(data.face_score>=0.5){
+          this.openNotification(data.face_code)
+        }
+      } catch (e) {
+        console.error("Error uploading image:", e);
+      }
+    },
+    /***
+     * Mở hộp thoại thông báo
+     */
+    openNotification(title) {
       notification.open({
-        message: "Notification Title",
+        message:title,
         description:
           "This is the content of the notification. This is the content of the notification. This is the content of the notification.",
         icon: h(SmileOutlined, { style: "color: #108ee9" }),
       });
     },
+
+    /***
+     * Kiểm tra trình duyệt có hỗ trợ camera hay không
+     */
     testSupport(supportedDevices) {
       const deviceDetector = new DeviceDetector();
       const detectedDevice = deviceDetector.parse(navigator.userAgent);
@@ -75,17 +122,15 @@ export default {
     },
   },
   data() {
-    return {};
+    return {
+      start:null,
+      //Sau bao nhiêu s có khuôn mặt thì gửi lên service
+      refreshRate:2000
+    };
   },
-  created() {
-    this.$socket.connect()
-  },
- 
+  created() {},
+
   mounted() {
-    const me = this;
-    // Client and os are regular expressions.
-    // See: https://cdn.jsdelivr.net/npm/device-detector-js@2.2.10/README.md for
-    // legal values for client and os
     this.testSupport([{ client: "Chrome" }]);
     const videoElement = this.$refs.input_video;
     const canvasElement = this.$refs.output_canvas;
@@ -93,9 +138,12 @@ export default {
     const canvasCtx = canvasElement.getContext("2d");
     const fpsControl = new controls.FPS();
     const spinner = this.$refs.spinner;
+    // const sendImage = this.debounce(this.sendImageToService, 500);
+    const me= this;
     spinner.ontransitionend = () => {
       spinner.style.display = "none";
     };
+   
     function onResults(results) {
       document.body.classList.add("loaded");
       fpsControl.tick();
@@ -108,56 +156,25 @@ export default {
         canvasElement.width,
         canvasElement.height
       );
+      /**
+       * Nếu có khuôn mặt trong frame
+       */
+
       if (results.detections.length > 0) {
-        // canvasElement.toBlob(
-        //   async (blob) => {
-        //     const formData = new FormData();
-        //     formData.append("image", blob, "image.jpg");
+        //Gửi ảnh lên serve cách 500ms
+        // sendImage(canvasElement, 1.0);
 
-           
+        if(!me.start){
+          me.start = new Date().getTime();
+        }
 
-        //     // await httpClient
-        //     //   .post("/faces/upload", formData)
-        //     //   .then((response) => {
-        //     //     // Handle the server response
-        //     //     console.log(response.data);
-        //     //   })
-        //     //   .catch((error) => {
-        //     //     console.error("Error uploading image:", error);
-        //     //   });
-        //     // const xhr = new XMLHttpRequest();
-        //     // xhr.open("POST", "http://127.0.0.1:8000/api/v1/faces/upload");
-        //     // // Define a function to handle the response when it's received
-        //     // xhr.onload = function () {
-        //     //   // Check the status code of the response
-        //     //   if (xhr.status === 200) {
-        //     //     // Access the response data
-        //     //     var responseData = xhr.response;
-        //     //     console.log(responseData);
-        //     //   } else {
-        //     //     console.log(
-        //     //       "Request failed.  Returned status of " + xhr.status
-        //     //     );
-        //     //   }
-        //     // };
+        let diff = new Date().getTime() - me.start||0;
+        if(diff>=me.refreshRate){
+          me.sendImageToService(canvasElement,1);
+          me.start = null
+        }
 
-        //     // xhr.send(formData);
-        //   },
-        //   "image/jpeg",
-        //   0.5
-        // ); // Set the JPEG compression level to 50%
-        // socket.on("connect", () => {
-              // console.log("Connected to server");
-              // const FPS = 22;
-              // emit an event to the server
-              // setInterval(() => {
-              //   var type = "image/png";
-              //   var data = canvasElement.toDataURL(type);
-              //   data = data.replace("data:" + type + ";base64,", ""); //split off junk
-              //   // at the beginning
-              //   socket.emit("stream", data);
-              // }, 10000 / FPS);
-            // });
+        //visualize lên màn hình - vẽ bouding box
         drawingUtils.drawRectangle(
           canvasCtx,
           results.detections[0].boundingBox,
@@ -167,11 +184,16 @@ export default {
             fillColor: "#00000000",
           }
         );
+
+        //vẽ toạ độ các điểm mắt mũi , tai
         drawingUtils.drawLandmarks(canvasCtx, results.detections[0].landmarks, {
           color: "red",
           radius: 5,
         });
+      }else{
+        me.start = null;
       }
+
       canvasCtx.restore();
     }
     const faceDetection = new mpFaceDetection.FaceDetection({
@@ -180,15 +202,15 @@ export default {
       },
     });
     faceDetection.onResults(onResults);
-    let control = new controls.ControlPanel(controlsElement, {
+    new controls.ControlPanel(controlsElement, {
       selfieMode: true,
       model: "short",
-      minDetectionConfidence: 0.5,
+      minDetectionConfidence: 1,
     })
       .add([
-        new controls.StaticText({ title: "MediaPipe Face Detection" }),
+        new controls.StaticText({ title: "Bảng điều khiển" }),
         fpsControl,
-        new controls.Toggle({ title: "Selfie Mode", field: "selfieMode" }),
+        new controls.Toggle({ title: "Gương", field: "selfieMode" }),
         new controls.SourcePicker({
           onSourceChanged: () => {
             faceDetection.reset();
@@ -218,7 +240,7 @@ export default {
           discrete: { short: "Short-Range", full: "Full-Range" },
         }),
         new controls.Slider({
-          title: "Min Detection Confidence",
+          title: "Ngưỡng chính xác",
           field: "minDetectionConfidence",
           range: [0, 1],
           step: 0.01,
@@ -230,9 +252,7 @@ export default {
         faceDetection.setOptions(options);
       });
   },
-  beforeUnmount() {
-    // this.$socket.disconnect()
-  },
+  beforeUnmount() {},
 };
 </script>
 

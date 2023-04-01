@@ -3,17 +3,17 @@
 </template>
 <script>
 import MainLayout from "@/layouts/MainLayout.vue";
-import { httpClient } from "@/apis/httpclient";
+import DemoVue from "./Demo.vue";
 export default {
   name: "App",
   components: {
     MainLayout,
+    DemoVue
   },
   async created() {
-    this.$router.push({name:'FaceRecognition'})
+    
   },
   mounted(){
-    console.log(this.$socket)
    
   }
 };

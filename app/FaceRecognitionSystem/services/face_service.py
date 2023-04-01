@@ -5,11 +5,12 @@ from repositories import account_repo,face_repo
 import os
 import uuid
 import configparser
+from pyodbc import Row
 config = configparser.ConfigParser()
 config.read('example.ini')
 
 #Tạo khuôn mặt cho tài khoản
-async def create_face(account_id, customer_id, file: UploadFile = File(...)):
+async def create_face(account_id, customer_id, file: UploadFile = File(...), type=1):
     
     if file.content_type != "image/jpeg":
         raise HTTPException(
@@ -22,8 +23,8 @@ async def create_face(account_id, customer_id, file: UploadFile = File(...)):
 
         #Kiểm tra xem account đó đã lấy đủ 3 ảnh hay chưa nếu đủ rồi thì không cho thêm
         total_face= face_repo.count_faces_by_account_id(account_id)
-        if total_face>=3:
-            raise HTTPException(status_code=400,detail='Tài khoản này đã có đủ 3 khuôn mặt')
+        if total_face>=8:
+            raise HTTPException(status_code=400,detail='Tài khoản này đã có đủ 8 khuôn mặt')
 
         # Lưu file vào ổ đĩa cứng
         # Tạo một thư mục để lưu file nếu chưa tồn tại
@@ -47,7 +48,7 @@ async def create_face(account_id, customer_id, file: UploadFile = File(...)):
 
             # lấy id và index do elastic search trả về và lưu vào sql
             extension =f'.{file.filename.split(".")[-1]}'
-            return face_repo.create_face(face_id,elastic_response.get('_id'),elastic_response.get('_index'),extension,acc.ID)
+            return face_repo.create_face(face_id,elastic_response.get('_id'),elastic_response.get('_index'),extension,acc.ID,type)
 
         except Exception as e:
             print(e)
@@ -93,5 +94,17 @@ def delete_face(face_id,customer_id):
         status_code=400,
         detail='Đầu vào không hợp lệ!'
     )    
-       
-   
+ #Lấy danh sách các dữ liệu nhận dạng của 1 tài khoản      
+def get_face_list(account_id):
+    data =  face_repo.get_face_list(account_id=account_id)
+    if data :
+            return [mapper(row) for row in data]
+    
+    return []
+
+#Chuyển đổi pydbc.Row sang object
+def mapper(row: Row):
+    ans={}
+    for des in row.cursor_description:
+        ans[des[0]]=row.__getattribute__(des[0])
+    return ans
