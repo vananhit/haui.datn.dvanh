@@ -30,3 +30,6 @@ def create_account(acc: AccountDto, curent_user: dict = Depends(get_current_user
             detail=f"Đầu vào không hợp lệ",
         )
     return ans
+@router.get('/accounts/exits',tags=['accounts'], dependencies=[Depends(validate_token)])
+def check_exist_account(user_name:str):
+    return True if account_service.find_by_user_name(user_name=user_name) else False

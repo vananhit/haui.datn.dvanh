@@ -41,6 +41,7 @@ def insert_account(user_name, password, email, customer_id, first_name, last_nam
 
 
 def get_accounts_by_customer_id(customer_id, skip, take, search):
+    #Tìm kiếm theo tên đăng nhập, họ, tên, thư điện tử
     sub_query = 'AND (UserName LIKE ? OR FirstName LIKE ? OR LastName LIKE ? OR Email LIKE ?)' if search else ''
     sql = "SELECT * FROM Accounts WHERE CustomerID =? {searh} ORDER BY CreatedDate  OFFSET ? ROWS FETCH NEXT ? ROWS ONLY".format(
         searh=sub_query)
@@ -68,4 +69,11 @@ def get_accounts_by_customer_id(customer_id, skip, take, search):
 def find_by_id(account_id):
     sql = "SELECT * FROM Accounts WHERE ID =?"
     cursor.execute(sql,account_id)
+    return cursor.fetchone()
+
+
+#Tìm tài khoản theo username
+def find_by_user_name(user_name):
+    sql = "SELECT * FROM Accounts WHERE UserName =?"
+    cursor.execute(sql,user_name)
     return cursor.fetchone()

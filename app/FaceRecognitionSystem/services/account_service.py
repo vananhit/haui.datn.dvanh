@@ -10,4 +10,7 @@ def create_account(user_name, password, email, customer_id, first_name, last_nam
         return account_repo.insert_account(user_name, password, email, customer_id, first_name, last_name, address)
         
     return None
-    
+
+#Tìm tài khoản theo user name
+def find_by_user_name(user_name):
+    return account_repo.find_by_user_name(user_name=user_name)

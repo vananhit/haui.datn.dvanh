@@ -141,6 +141,7 @@ export default {
 </script>
 
 <style lang="scss">
+
 .page-container {
   width: 90%;
   height: 80vh;
