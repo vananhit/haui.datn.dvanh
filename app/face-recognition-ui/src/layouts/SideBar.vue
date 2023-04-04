@@ -5,7 +5,7 @@
     v-model:openKeys="openKeys"
     mode="inline"
   >
-    <div style="height: 64px;"></div>
+    <div style="height: 64px"></div>
     <a-sub-menu key="sub1">
       <template #title>
         <span>
@@ -44,8 +44,7 @@ import {
   FileOutlined,
   LaptopOutlined,
 } from "@ant-design/icons-vue";
-import { defineComponent, ref } from "vue";
-
+import { defineComponent, onMounted, ref, getCurrentInstance } from "vue";
 export default defineComponent({
   components: {
     PieChartOutlined,
@@ -56,6 +55,7 @@ export default defineComponent({
     LaptopOutlined,
   },
   setup() {
+    
     return {
       selectedKeys: ref(["1"]),
       openKeys: ref(["sub1"]),

@@ -1,26 +1,25 @@
 <template>
   <div>
-    <div class="page-title">Quản lý khuôn mặt</div>
-    <a-table
-      :columns="columns"
-      :data-source="data"
-      :pagination="pagination"
-      :loading="loading"
-      @change="handleTableChange"
-    >
+    <div class="page-title">
+      <span>Quản lý khuôn mặt</span><a-button type="primary">Thêm tài khoản</a-button>
+    </div>
+    <a-input-search class="search-box" placeholder="Tìm kiếm theo tên đăng nhập, thư điện tử họ và tên"
+      style="width: 400px" @search="onSearch" @change="onSearchBoxChange" />
+    <a-table :columns="columns" :data-source="data" :pagination="pagination" :loading="loading"
+      @change="handleTableChange">
       <template #bodyCell="{ column, text, record }">
         <template v-if="column.dataIndex === 'Action'">
-           <div style="display: flex">
+          <div style="display: flex">
             <a-tooltip>
               <template #title> Xoá</template>
               <DeleteTwoTone @click="confirm(record)" />
             </a-tooltip>
-            <div style="width:24px"></div>
+            <div style="width: 24px"></div>
             <a-tooltip>
               <template #title> Thiết lập dữ liệu khuôn mặt</template>
-              <FolderViewOutlined  @click="viewDetail(record,text)"/>
+              <FolderViewOutlined @click="viewDetail(record, text)" />
             </a-tooltip>
-           </div>
+          </div>
         </template>
       </template>
     </a-table>
@@ -43,6 +42,8 @@ export default {
   },
   data() {
     return {
+      searchValue: null,
+
       columns: [
         {
           title: "Tên tài khoản",
@@ -105,14 +106,39 @@ export default {
     this.pagination.total = ans.data.total;
   },
   methods: {
+    onSearchBoxChange(e) {
+      this.searchValue = e.target.value;
+    },
+    /**Khi nhấn vào ô tìm kiếm */
+    async onSearch(e) {
+      this.pagination = {
+        total: 0,
+        current: 1,
+        pageSize: 20,
+      };
+      let params = {
+        skip: 0,
+        take: 20,
+        search: this.searchValue,
+      };
+
+      let ans = await httpClient.get("customers/accounts", { params: params });
+      this.data = ans.data.data.map((x) => {
+        return {
+          ...x,
+          key: x.ID,
+        };
+      });
+      this.pagination.total = ans.data.total;
+    },
     /**
      * Xem chi tiết tài khoản
      */
-    viewDetail(record){
+    viewDetail(record) {
       this.$router.push({
-        name:'FaceMangementDetatil',
-        query:record
-      })
+        name: "FaceMangementDetatil",
+        query: record,
+      });
     },
     /**
      * Mở popup xác nhận xoá
@@ -139,6 +165,7 @@ export default {
         params: {
           skip: (pag.current - 1) * pag.pageSize,
           take: pag.pageSize,
+          search: this.searchValue,
         },
       });
       this.data = ans.data.data.map((x) => {
@@ -152,3 +179,18 @@ export default {
   },
 };
 </script>
+
+<style>
+.page-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 24px;
+  margin-top: 24px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.search-box {
+  margin-bottom: 24px;
+}
+</style>

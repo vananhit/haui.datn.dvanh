@@ -42,7 +42,7 @@ export default {
     /***
      * lấy ảnh từ đối tượng canvas đưa nó vào trong 1 from data trả về một promise
      */
-    getImageFromCanvans(mycanvas, quality = 0.5) {
+    getImageFromCanvans(mycanvas, quality = 1) {
       return new Promise(function (resolve, reject) {
         mycanvas.toBlob(
           (blob) => {
@@ -71,7 +71,7 @@ export default {
         //Upload ảnh lên server
         let ans = await httpClient.post("/faces/upload", formData);
         let data = ans.data
-        if(data.face_score>=0.5){
+        if(data.face_score>=0.7){
           this.openNotification(data.face_code)
         }
       } catch (e) {

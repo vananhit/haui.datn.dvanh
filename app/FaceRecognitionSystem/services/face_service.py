@@ -81,7 +81,7 @@ def delete_face(face_id,customer_id):
                 #Xoá khuôn mặt trên sql
                 face_repo.delete_by_id(face.ID)
                 #Xoá khuôn mặt trong file uploads
-                image = f'./{customer_id}/{acc.ID}/{face.Extension}'
+                image = f'./uploads/{customer_id}/{acc.ID}{face.Extension}'
                 files.delete_file_if_exists(image)
                 return True
             except Exception as e:
