@@ -44,7 +44,7 @@ async def create_face(account_id, customer_id, file: UploadFile = File(...), typ
         
         try:
             # thêm khuôn mặt vào elastic searh
-            elastic_response = faces.CreateEmbeding(image, acc.UserName, image,customer_id)
+            elastic_response = faces.CreateEmbeding(image, acc.UserName, f'{acc.LastName} {acc.FirstName}' , image,customer_id)
 
             # lấy id và index do elastic search trả về và lưu vào sql
             extension =f'.{file.filename.split(".")[-1]}'

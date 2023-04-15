@@ -43,14 +43,18 @@
 import Image from "@/components/Image.vue";
 import { httpClient } from "@/apis/httpclient";
 import { mask, unMask, parseJwt } from "@/utils";
+import { notification } from "ant-design-vue";
+import { SmileOutlined } from "@ant-design/icons-vue";
+import { h } from "vue";
 export default {
   components: {
     Image,
+    SmileOutlined
   },
   computed: {
     fullName: {
       get() {
-        return this.$route.query.LastName + this.$route.query.FirstName;
+        return this.$route.query.LastName + ' ' +this.$route.query.FirstName;
       },
     },
     email: {
@@ -132,6 +136,12 @@ export default {
 
       } catch (e) {
         console.log(e);
+        notification.open({
+          message: 'Thêm dữ liệu nhận dạng thất bại!',
+          description:
+            "Vui lòng liên hệ với quản trị hệ thống để biết thêm chi tiết",
+          icon: h(SmileOutlined, { style: "color: #108ee9" }),
+        });
       }
 
       unMask();

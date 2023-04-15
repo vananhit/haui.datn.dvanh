@@ -2,7 +2,7 @@
   <div>
     <div class="page-title">
       <span>Quản lý khuôn mặt</span
-      ><a-button @click="OpenCreateAccountPopup" type="primary"
+      ><a-button @click="isShowAccountPopup = true" type="primary"
         >Thêm tài khoản</a-button
       >
     </div>
@@ -52,6 +52,18 @@
         </div>
         <div class="popup-content">
           <a-form :layout="'vertical'" :rules="rules">
+            <a-form-item label="Tên đăng nhập" name="UserName">
+              <a-input
+                v-model:value="formState.UserName"
+                placeholder="Nhập tên đăng nhập"
+              />
+            </a-form-item>
+            <a-form-item label="Thư điện tử" name="Email">
+              <a-input
+                v-model:value="formState.Email"
+                placeholder="Nhập thư điện tử"
+              />
+            </a-form-item>
             <a-form-item label="Họ" name="LastName">
               <a-input
                 v-model:value="formState.LastName"
@@ -64,22 +76,16 @@
                 placeholder="Nhập tên"
               />
             </a-form-item>
-            <a-form-item label="Thư điện tử" name="Email">
+            <a-form-item label="Địa chỉ" name="Address">
               <a-input
-                v-model:value="formState.Email"
-                placeholder="Nhập thư điện tử"
-              />
-            </a-form-item>
-            <a-form-item label="Tên đăng nhập" name="UserName">
-              <a-input
-                v-model:value="formState.UserName"
-                placeholder="Nhập tên đăng nhập"
+                v-model:value="formState.Address"
+                placeholder="Nhập địa chỉ"
               />
             </a-form-item>
             <div class="popup-action">
               <a-button @click="isShowAccountPopup = false"> Huỷ </a-button>
               <div style="width: 24px"></div>
-              <a-button type="primary"> Tạo </a-button>
+              <a-button type="primary" @click="CreateAccout"> Tạo </a-button>
             </div>
           </a-form>
         </div>
@@ -98,10 +104,14 @@ import {
 } from "@ant-design/icons-vue";
 import { Modal } from "ant-design-vue";
 import { createVNode } from "vue";
+import { notification } from "ant-design-vue";
+import { SmileOutlined } from "@ant-design/icons-vue";
+import { h } from "vue";
 export default {
   components: {
     DeleteTwoTone,
     FolderViewOutlined,
+    SmileOutlined,
   },
   data() {
     return {
@@ -116,7 +126,7 @@ export default {
           {
             required: true,
             validator: this.validateFirstName,
-            trigger: "change",
+            trigger: "blur",
             message: "Tên không được để trống",
           },
         ],
@@ -124,7 +134,7 @@ export default {
           {
             required: true,
             validator: this.validateLastName,
-            trigger: "change",
+            trigger: "blur",
             message: "Họ không được để trống",
           },
         ],
@@ -210,16 +220,39 @@ export default {
     this.pagination.total = ans.data.total;
   },
   methods: {
-    debounce(func, wait) {
-      let timeout;
-      return function executedFunction(...args) {
-        const later = () => {
-          clearTimeout(timeout);
-          func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-      };
+    /**
+     * Tạo tài khoản
+     */
+    async CreateAccout() {
+      mask();
+      const me = this;
+      try {
+        await httpClient.post("accounts/account", {
+          UserName: me.formState.UserName,
+          Password: "",
+          Email: me.formState.Email,
+          FirstName: me.formState.FirstName,
+          LastName: me.formState.LastName,
+          Address: me.formState.Address,
+        });
+        await me.handleTableChange(me.pagination);
+        notification.open({
+          message: "Tạo tài khoản thành công",
+          description:
+            "Tên đăng nhâp, và mật khẩu đã được gửi tới mail đăng ký",
+          icon: h(SmileOutlined, { style: "color: #108ee9" }),
+        });
+      } catch (e) {
+        console.log(e);
+        notification.open({
+          message: "Tạo tài khoản không thành công",
+          description:
+            "Vui lòng liên hệ với quản trị hệ thống để biết thêm chi tiết",
+          icon: h(SmileOutlined, { style: "color: #108ee9" }),
+        });
+      }
+      me.isShowAccountPopup = false;
+      unMask();
     },
     validateFirstName(rule) {
       if (!this.formState.FirstName) {
@@ -235,17 +268,30 @@ export default {
         return Promise.resolve();
       }
     },
-    validateEmail(rule) {
+    async validateEmail(rule) {
       if (!this.formState.Email) {
         return Promise.reject();
       } else {
-        /**
-         * kiểm tra định dạng email
-         */
+        debugger;
+        //Kiểm tra định dạng email
 
-        //eslint-disable-next-line
-        if (!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(this.formState.Email))) {
-          rule.message="Email sai định dạng!"
+        if (
+          //eslint-disable-next-line
+          !/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(
+            this.formState.Email
+          )
+        ) {
+          rule.message = "Email sai định dạng!";
+          return Promise.reject();
+        }
+        //Kiểm tra tồn tại email
+        let exist = (
+          await httpClient.get(
+            `accounts/exits-email?email=${this.formState.Email}`
+          )
+        ).data;
+        if (exist) {
+          rule.message = "Thư điện tử đã tồn tại!";
           return Promise.reject();
         }
         return Promise.resolve();
@@ -269,14 +315,7 @@ export default {
         }
       }
     },
-    /**
-     * Bật popup thêm tài khoản mới
-     */
-    OpenCreateAccountPopup() {
-      mask();
-      this.isShowAccountPopup = true;
-      unMask();
-    },
+
     /**
      * Gọi lại api phân trang khi tìm kiếm
      * @param {*} e
@@ -319,12 +358,47 @@ export default {
      * Mở popup xác nhận xoá
      */
     confirm(record) {
+      console.log(record);
       Modal.confirm({
         title: "Xác nhận xoá",
         icon: createVNode(ExclamationCircleOutlined),
-        content: `Xoá tài khoản <${record.UserName}> ra khỏi hệ thống`,
+        content: `Xoá tài khoản <${record.UserName}> và toàn bộ dữ liệu nhận dạng ra khỏi hệ thống`,
         okText: "Đồng ý",
         cancelText: "Huỷ bỏ",
+        onOk: async () => {
+          const me = this;
+          mask();
+          try {
+            //Xoá
+            await httpClient.delete(`accounts/account?account_id=${record.ID}`);
+            //Lấy lại dữ liệu
+            await me.handleTableChange(me.pagination);
+
+            notification.open({
+              message: "Xoá tài khoản thành công!",
+              icon: h(SmileOutlined, { style: "color: #108ee9" }),
+            });
+          } catch (e) {
+            console.log(e);
+            if (e?.response?.status == 400) {
+              notification.open({
+                message: "Xoá tài khoản thất bại!",
+                description:
+                  e?.response?.data?.detail ||
+                  "Vui lòng liên hệ với quản trị hệ thống để biết thêm chi tiết",
+                icon: h(SmileOutlined, { style: "color: #108ee9" }),
+              });
+            } else {
+              notification.open({
+                message: "Xoá tài khoản thất bại!",
+                description:
+                  "Vui lòng liên hệ với quản trị hệ thống để biết thêm chi tiết",
+                icon: h(SmileOutlined, { style: "color: #108ee9" }),
+              });
+            }
+          }
+          unMask();
+        },
       });
     },
 
@@ -364,7 +438,7 @@ export default {
   bottom: 0;
   right: 0;
   background-color: rgba(0, 0, 0, 0.6);
-  z-index: 999;
+  z-index: 100;
   display: flex;
   justify-content: center;
   align-items: center;

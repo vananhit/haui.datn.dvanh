@@ -77,3 +77,15 @@ def find_by_user_name(user_name):
     sql = "SELECT * FROM Accounts WHERE UserName =?"
     cursor.execute(sql,user_name)
     return cursor.fetchone()
+
+#Tìm tài khoản theo email
+def find_by_email(email):
+    sql = "SELECT * FROM Accounts WHERE Email = ?"
+    cursor.execute(sql,email)
+    return cursor.fetchone()
+
+#Xoá tài khoản theo id
+def delete_account_by_id(account_id):
+    sql = "DELETE FROM Accounts WHERE ID=?"
+    cursor.execute(sql,account_id)
+    cursor.commit()

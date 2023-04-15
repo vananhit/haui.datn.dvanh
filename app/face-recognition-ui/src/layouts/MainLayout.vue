@@ -71,6 +71,7 @@ export default defineComponent({
   justify-content: center;
   align-items: center;
   visibility: hidden;
+  z-index: 9999;
 }
 .site-layout .site-layout-background {
   background: #fff;

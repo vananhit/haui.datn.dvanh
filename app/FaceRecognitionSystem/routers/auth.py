@@ -10,7 +10,7 @@ router = APIRouter()
 def login(user: LoginDto):
     current_user = auth_service.verify_password(
         username=user.username, password=user.password)
-    print(user)
+   
     if current_user:
         return {
             'token': generate_token(payload=current_user)

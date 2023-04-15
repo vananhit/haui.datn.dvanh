@@ -26,6 +26,7 @@ def verify_password(username, password) -> Optional[CurrentUser]:
         # kiển tra tk này thuộc customer nào
         cus = customers_repo.find_custommer_by_id(user.CustomerID)
         if cus:
+           
             return CurrentUser(CustomerID=cus.ID,
                                CustomerName=cus.CustomerName,
                                AccountID=user.ID,

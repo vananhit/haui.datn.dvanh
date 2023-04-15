@@ -30,6 +30,17 @@ def create_account(acc: AccountDto, curent_user: dict = Depends(get_current_user
             detail=f"Đầu vào không hợp lệ",
         )
     return ans
+#kiểm tra xem username đã được đăng ký chưa
 @router.get('/accounts/exits',tags=['accounts'], dependencies=[Depends(validate_token)])
 def check_exist_account(user_name:str):
     return True if account_service.find_by_user_name(user_name=user_name) else False
+
+#kiểm tra xem email đã được đăng ký chưa
+@router.get('/accounts/exits-email', tags=['accounts'], dependencies=[Depends(validate_token)])
+def check_exist_by_email(email:str):
+    return True if account_service.find_by_email(email=email) else False
+
+#Xoá tài khoản theo id
+@router.delete('/accounts/account', tags=['accounts'], dependencies=[Depends(validate_token)])
+def delete_by_id(account_id:str):
+    return not not account_service.delete_by_id(account_id=account_id)

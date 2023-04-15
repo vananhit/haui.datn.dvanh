@@ -28,13 +28,13 @@ models = [
 #input: 
 #       img: là đường dẫn ảnh, vector numpy hoặc base64
 #       code: mã số là duy nhất đại diện cho người đó
-#       name: tên của người lấy mẫu
-#       saveToElk: biến đánh dấu xem cớ lưu lên elk hay không
+#       name: tên đăng nhập của người lấy mẫu
 #output: vector emmbeding 512 chiều
 #created by dvanh(30/03/2023)
-def CreateEmbeding(img, code,name,app_id=None ):
+def CreateEmbeding(img, code,name,full_name,app_id=None ):
     vector =  DeepFace.represent(img, model_name = models[2],detector_backend='mediapipe')
     doc ={
+            'full_name':full_name,
             'face_name':name,
             'face_code':code,
             'face_encoding':vector[0].get('embedding')
@@ -97,6 +97,7 @@ def  FindFace(img,app_id):
             'face_score':response['hits']['hits'][0]['_score'],# Độ chính xác 0->1
             'face_name':response['hits']['hits'][0]['_source']['face_name'],#Tên người đó
             'face_code':response['hits']['hits'][0]['_source']['face_code'],#Mã định danh
+            'full_name':response['hits']['hits'][0]['_source']['full_name']
         }
     except Exception as e:
         print(f"FindFace:{e}")
