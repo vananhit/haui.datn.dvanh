@@ -6,8 +6,25 @@ import os
 import uuid
 import configparser
 from pyodbc import Row
+from utils.faces import FindFace
+import numpy as np
+import cv2
+import os
+import warnings
+from src.anti_spoof_predict import AntiSpoofPredict
+from src.generate_patches import CropImage
+from src.utility import parse_model_name
+import time
+from elasticsearch import Elasticsearch, helpers
+warnings.filterwarnings('ignore')
+
 config = configparser.ConfigParser()
 config.read('example.ini')
+es = Elasticsearch(
+    cloud_id=config['DEFAULT']['cloud_id'],
+    api_key=(config['DEFAULT']['apikey_id'], config['DEFAULT']['apikey_key']),
+)
+
 
 #Tạo khuôn mặt cho tài khoản
 async def create_face(account_id, customer_id, file: UploadFile = File(...), type=1):
@@ -108,3 +125,97 @@ def mapper(row: Row):
     for des in row.cursor_description:
         ans[des[0]]=row.__getattribute__(des[0])
     return ans
+
+
+#nhận diện khuôn mặt và lưu vào elastich search
+def recognition(image, user):
+    img_arr = read_image_cv2(image)
+    
+    #Xác minh thật giả
+    spoofing  =  check_spoofing(img_arr)
+    #Lấy thông tin nhận diện khuôn mặt trên elastic search
+    face = FindFace(img_arr,user.CustomerID)
+
+    #Nếu là người trên hệ thống ghi lại nhật ký nhận dạng vào elastic search\
+    app_id  = user.CustomerID
+    index = config['DEFAULT']['audit_index']
+    index = index+"_"+ app_id if app_id else ''
+    #Build object lưu nhật ký nhận dạng
+    if face:
+        #Lấy thông tin người dùng trong sqldb từ username trả về từ elastic search
+        account =  account_repo.find_by_user_name(face.face_code)
+        doc={
+            
+        }
+        # response = es.index(index=index,document=doc)
+    return {
+        'spoofing':spoofing,
+        'face':face
+    }
+
+def read_image_cv2(file: UploadFile) -> np.ndarray:
+    npimg = np.frombuffer(file.file.read(), np.uint8)
+    img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
+    return img
+
+#Kiểm tra xenm hình ảnh có đúng tỉ lệ chưu
+def check_image(image):
+    height, width, channel = image.shape
+    if width/height != 3/4:
+        print("Image is not appropriate!!!\nHeight/Width should be 4/3.")
+        return False
+    else:
+        return True
+
+#Kiểm tra là ảnh chứa khuôn mặt thật hay ảnh giả mạo    
+def check_spoofing(image, model_dir="./resources/anti_spoof_models", device_id=0):
+    model_test = AntiSpoofPredict(device_id)
+    image_cropper = CropImage()
+    result = check_image(image)
+    if result is False:
+        return
+    image_bbox = model_test.get_bbox(image)
+    prediction = np.zeros((1, 3))
+    # sum the prediction from single model's result
+    for model_name in os.listdir(model_dir):
+        h_input, w_input, model_type, scale = parse_model_name(model_name)
+        param = {
+            "org_img": image,
+            "bbox": image_bbox,
+            "scale": scale,
+            "out_w": w_input,
+            "out_h": h_input,
+            "crop": True,
+        }
+        if scale is None:
+            param["crop"] = False
+        img = image_cropper.crop(**param)
+        start = time.time()
+        prediction += model_test.predict(img, os.path.join(model_dir, model_name))
+
+    # draw result of prediction
+    label = np.argmax(prediction)
+    value = prediction[0][label]/2
+    # if label == 1:
+    #     result_text = "RealFace Score: {:.2f}".format(value)
+    #     color = (255, 0, 0)
+    # else:
+    #     result_text = "FakeFace Score: {:.2f}".format(value)
+    #     color = (0, 0, 255)
+    # cv2.rectangle(
+    #     image,
+    #     (image_bbox[0], image_bbox[1]),
+    #     (image_bbox[0] + image_bbox[2], image_bbox[1] + image_bbox[3]),
+    #     color, 2)
+    # cv2.putText(
+    #     image,
+    #     result_text,
+    #     (image_bbox[0], image_bbox[1] - 5),
+    #     cv2.FONT_HERSHEY_COMPLEX, 0.5*image.shape[0]/1024, color)
+
+    # result_image_name = f'{time.time()}.jpg'
+    # cv2.imwrite(result_image_name, image)
+    return {
+        'RealFace' : bool( label == 1),
+        'Score':value
+    }

@@ -8,8 +8,8 @@
         <canvas
           ref="output_canvas"
           class="output_canvas"
-          width="320"
-          height="180"
+          width="480"
+          height="640"
         >
         </canvas>
       </div>
@@ -69,7 +69,7 @@ export default {
         //Lấy ảnh từ đối tương canvasElement
         let formData = await this.getImageFromCanvans(canvasElement, quality);
         //Upload ảnh lên server
-        let ans = await httpClient.post("/faces/upload", formData);
+        let ans = await httpClient.post("/faces/recognition", formData);
         let data = ans.data
         if(data.face_score>=0.7){
           this.openNotification(data.face_code)
@@ -227,6 +227,8 @@ export default {
             }
             canvasElement.width = width;
             canvasElement.height = height;
+            canvasElement.width = 480;
+            canvasElement.height = 640;
             await faceDetection.send({ image: input });
           },
           examples: {
