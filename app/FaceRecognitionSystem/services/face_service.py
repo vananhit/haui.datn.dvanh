@@ -16,6 +16,7 @@ from src.generate_patches import CropImage
 from src.utility import parse_model_name
 import time
 from elasticsearch import Elasticsearch, helpers
+from datetime import datetime
 warnings.filterwarnings('ignore')
 
 config = configparser.ConfigParser()
@@ -141,13 +142,22 @@ def recognition(image, user):
     index = config['DEFAULT']['audit_index']
     index = index+"_"+ app_id if app_id else ''
     #Build object lưu nhật ký nhận dạng
-    if face:
+    if face and face['face_score']>=0.7:
         #Lấy thông tin người dùng trong sqldb từ username trả về từ elastic search
-        account =  account_repo.find_by_user_name(face.face_code)
+        account =  account_repo.find_by_user_name(face['face_code'])
+        print(f'account {account.UserName}')
         doc={
-            
+            'UserName':account.UserName,
+            'FullName':f'{account.LastName} {account.FirstName}',
+            'Email': account.Email,
+            'Address':account.Address,
+            'Status': spoofing['Label'],
+            'Score':spoofing['Score'],
+            'CreatedDate':datetime.now()
         }
-        # response = es.index(index=index,document=doc)
+        #Ghi nhật ký nhận dạng vào elastic search
+        response =  es.index(index=index,document=doc)
+        print(f'auditlog {response}')
     return {
         'spoofing':spoofing,
         'face':face
@@ -216,6 +226,6 @@ def check_spoofing(image, model_dir="./resources/anti_spoof_models", device_id=0
     # result_image_name = f'{time.time()}.jpg'
     # cv2.imwrite(result_image_name, image)
     return {
-        'RealFace' : bool( label == 1),
+        'Label' : int(label),
         'Score':value
     }

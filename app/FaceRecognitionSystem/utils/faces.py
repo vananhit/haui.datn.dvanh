@@ -32,7 +32,7 @@ models = [
 #output: vector emmbeding 512 chiều
 #created by dvanh(30/03/2023)
 def CreateEmbeding(img, code,name,full_name,app_id=None ):
-    vector =  DeepFace.represent(img, model_name = models[2],detector_backend='mediapipe')
+    vector =  DeepFace.represent(img, model_name = models[6],detector_backend='mediapipe')
     doc ={
             'full_name':full_name,
             'face_name':name,
@@ -65,7 +65,7 @@ def DeleteEmbeding(index_name,doc_id):
 def  FindFace(img,app_id):
     try:
         t=time.time()
-        face_encoding = DeepFace.represent(img, model_name = models[2],detector_backend='mediapipe')
+        face_encoding = DeepFace.represent(img, model_name = models[6],detector_backend='mediapipe')
         query={
                 "script_score": {
                     "query": {
