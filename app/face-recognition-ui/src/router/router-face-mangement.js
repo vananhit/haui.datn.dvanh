@@ -5,7 +5,7 @@ export default[
         path:'/face-manangement',
         name:'FaceMangement',
         component:FaceManagement,
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true ,isMaster:true},
     
     },
     {
@@ -13,7 +13,7 @@ export default[
         name:"FaceMangementDetatil",
         path: '/face-manangement/detail',
         component: FaceManagementDetail,
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true ,isMaster:true},
 
       },
 ]

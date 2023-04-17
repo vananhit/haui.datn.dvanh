@@ -17,7 +17,6 @@
       :columns="columns"
       :data-source="data"
       :pagination="pagination"
-      :loading="loading"
       @change="handleTableChange"
     >
       <template #bodyCell="{ column, text, record }">

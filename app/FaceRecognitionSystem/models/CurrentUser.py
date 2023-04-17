@@ -10,4 +10,4 @@ class CurrentUser(BaseModel):
     Address:Optional[str]
     FistName:Optional[str]            
     LastName:Optional[str]
-    IsMasterAccount :str    
+    IsMasterAccount :bool    

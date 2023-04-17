@@ -6,23 +6,34 @@
         <a-input-search
           placeholder="Tìm kiếm theo tên đăng nhập, thư điện tử và họ tên"
           style="width: 400px"
-          @search="onSearch"
-          @change="onSearchBoxChange"
+          @search="initvalue"
         />
-        <a-range-picker v-model:value="dateRange" :format="dateFormat" :locale="locale"  />
+        <a-range-picker
+          v-model:value="dateRange"
+          :locale="locale"
+          @change="initvalue"
+        />
       </div>
 
       <a-table
         :columns="columns"
         :data-source="data"
         :pagination="pagination"
-        :loading="loading"
         @change="handleTableChange"
         bordered
         size="middle"
       >
         <template #bodyCell="{ column, text, record }">
-          <template v-if="column.dataIndex === 'Action'"> </template>
+          <template v-if="column.dataIndex === 'Status'">
+            <div v-if="record.Status == 1" class="real-status">Thật</div>
+            <div v-else>Giả mạo</div>
+          </template>
+          <template v-else-if="column.dataIndex === 'Score'">
+            {{ Math.round(record.Score * 100) }}%
+          </template>
+          <template v-else-if="column.dataIndex === 'CreatedDate'">
+            {{ formatDate(record.CreatedDate) }}
+          </template>
         </template>
       </a-table>
     </div>
@@ -30,7 +41,7 @@
 </template>
 
 <script>
- import locale from 'ant-design-vue/es/date-picker/locale/vi_VN';
+import locale from "ant-design-vue/es/date-picker/locale/vi_VN";
 import {
   DeleteTwoTone,
   ExclamationCircleOutlined,
@@ -38,8 +49,8 @@ import {
   SmileOutlined,
 } from "@ant-design/icons-vue";
 import { mask, unMask } from "@/utils";
-import moment from 'moment';
-import { httpClient } from '@/apis/httpclient';
+import moment from "moment";
+import { httpClient } from "@/apis/httpclient";
 export default {
   components: {
     DeleteTwoTone,
@@ -48,9 +59,8 @@ export default {
   },
   data() {
     return {
-      locale:locale,
-      dateFormat : 'YYYY/MM/DD',
-      dateRange:  null, //[moment().startOf('day'), moment().endOf('day')],
+      locale: locale,
+      dateRange: null,
       columns: [
         {
           title: "Tên tài khoản",
@@ -71,7 +81,7 @@ export default {
 
         {
           title: "Họ Tên",
-          dataIndex: "LastName",
+          dataIndex: "FullName",
           key: "FullName",
           ellipsis: true,
         },
@@ -92,9 +102,15 @@ export default {
             },
           ],
         },
+        {
+          title: "Thời điểm",
+          dataIndex: "CreatedDate",
+          key: "CreatedDate",
+          ellipsis: true,
+        },
       ],
       data: [],
-      searchValue:null,
+      searchValue: null,
       pagination: {
         total: 0,
         current: 1,
@@ -103,39 +119,45 @@ export default {
     };
   },
   methods: {
+    formatDate(date) {
+      return moment(date, "YYYY-MM-DDTHH:mm:ss").format("DD/MM/YYYY HH:mm:ss");
+    },
+    async handleTableChange(pag, filters, sorter) {
+      this.pagination = pag;
+      await this.initvalue();
+    },
     //Gọi api lần đầu
     async initvalue() {
-      const me= this;
+      const me = this;
       mask();
-      let skip = (me.pagination.current-1)*me.pagination.pageSize;
-      let take = me.pagination.current*me.pagination.pageSize-1;
-      // Lấy thời điểm bắt đầu của ngày hôm nay
-      let startOfDay = moment().startOf('day').format('YYYY-MM-DDTHH:mm:ss');
-
-      //Lấy thời điểm cuối ngày
-      let endOfDay = moment().endOf('day').format('YYYY-MM-DDTHH:mm:ss');
-      let params={
-        skip:skip,
-        take:take,
-        fromDate:startOfDay,
-        toDate:endOfDay
+      let skip = (me.pagination.current - 1) * me.pagination.pageSize;
+      let take = me.pagination.current * me.pagination.pageSize - 1;
+      let fromDate = moment().startOf("day").format("YYYY-MM-DDTHH:mm:ss");
+      let toDate = moment().endOf("day").format("YYYY-MM-DDTHH:mm:ss");
+      if (me.dateRange) {
+        fromDate = me.dateRange[0].startOf("day").format("YYYY-MM-DDTHH:mm:ss");
+        toDate = me.dateRange[1].endOf("day").format("YYYY-MM-DDTHH:mm:ss");
       }
-      if(me.searchValue){
-        params.searchValue=me.searchValue
+      let params = {
+        skip: skip,
+        take: take,
+        fromDate: fromDate,
+        toDate: toDate,
+      };
+      if (me.searchValue) {
+        params.searchValue = me.searchValue;
       }
-      let ans =  await httpClient.get(`recognition-history`,{params:params})
-      console.log(ans)
+      let ans = (
+        await httpClient.get(`recognition-history`, { params: params })
+      ).data;
+      me.pagination.total = ans.hits.total.value;
+      me.data = ans.hits.hits.map((x) => x._source);
       unMask();
     },
-    /**
-     * Buil object trả về từ elastic search
-     * @param {*} res 
-     */
-    buildObject(res){
-
-    }
   },
   created() {
+    // this.dateRange = [moment(), moment()];
+    // console.log(this.dateRange)
     this.initvalue();
   },
 };
@@ -161,6 +183,15 @@ export default {
       justify-content: space-between;
       margin-bottom: 24px;
     }
+  }
+  .real-status {
+    background-color: rgb(195, 236, 195);
+    color: rgb(33, 156, 33);
+    width: fit-content;
+    padding: 0px 12px;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 600;
   }
 }
 </style>

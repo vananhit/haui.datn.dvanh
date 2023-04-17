@@ -39,7 +39,7 @@
   
 <script>
 import {httpClient} from "@/apis/httpclient"
-
+import {mask, unMask,parseJwt} from "@/utils"
 
 export default {
   data() {
@@ -53,8 +53,8 @@ export default {
     let token = localStorage.getItem("token")
     if(token){
       try{
-       await httpClient.post('auth/authen')
-       this.$router.push({name:'FaceRecognition'})
+       await httpClient.post('auth/authen',{isMaster:parseJwt().IsMasterAccount||false})
+       this.$router.push('/')
       }catch(e){
         console.log(e)
       }
@@ -62,6 +62,7 @@ export default {
   },  
   methods: {
     async login(){
+      mask();
       let data={
         username:this.username,
         password:this.password
@@ -69,7 +70,9 @@ export default {
       try{
         let response = await httpClient.post('auth/login',data)
         localStorage.setItem("token",response.data.token)
-        this.$router.push({name:'FaceRecognition'})
+        this.$router.push('/')
+        this.$router.go()
+        // this.$router.go()
       }catch(e){
         //tài khoản chưa đăng ký
         console.log(e)
@@ -78,7 +81,7 @@ export default {
         }
       }
       
-     
+     unMask();
     }
   },
 };
@@ -95,6 +98,7 @@ export default {
   right: 0;
   left: 0;
   bottom: 0;
+  z-index: 99;
 }
 </style>
 

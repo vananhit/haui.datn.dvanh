@@ -10,7 +10,7 @@ es = Elasticsearch(
 # Lấy nhật ký nhận dạng
 
 
-def getAuditLog(skip, take, startDate, toDate, search, app_id=None):
+def getAuditLog(skip, take, startDate, toDate, search, user):
     query = {
         "bool": {
             "must": [
@@ -39,11 +39,16 @@ def getAuditLog(skip, take, startDate, toDate, search, app_id=None):
                 "operator": "or"
             }
         })
-
+    if not user.IsMasterAccount:
+        query["bool"]["must"].append({
+            "match": {
+                "UserName": user.UserName
+            }
+        })
+        pass
+    
+    app_id = user.CustomerID
     index = f"{config['DEFAULT']['audit_index']}{ f'_{app_id}' if app_id else ''}*"
-
     response = es.search(query=query, index=index,
                          sort=sort, size=take, from_=skip)
-
-    
     return response

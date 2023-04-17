@@ -3,6 +3,7 @@ from dtos.auth.LoginDto import LoginDto
 from utils.security import generate_token,get_current_user,validate_token
 from services import auth_service
 from models.CurrentUser import CurrentUser
+from models.Auth import Auth
 router = APIRouter()
 
 
@@ -20,8 +21,14 @@ def login(user: LoginDto):
 
 #xác minh người dùng
 @router.post('/auth/authen',tags=["auth"],dependencies=[Depends(validate_token)])
-def authen(current_user=Depends(get_current_user)):
+def authen(item :Auth,current_user=Depends(get_current_user)):
     user = CurrentUser.parse_obj(current_user)
+   
+    if item.isMaster and not user.IsMasterAccount:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Could not validate credentials",
+        )
     return user
 
 

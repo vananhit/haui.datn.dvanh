@@ -15,7 +15,7 @@ const routes = [
   {
     path: '/logout',
     name: 'Logout',
-   
+
   },
   ...routerFaceRecognition,
   ...routerRecognitionHistory,
@@ -30,21 +30,18 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
 
-  if(to.fullPath=="/"){
-    next({name:'FaceMangement'})
-  }
+
   //xoá token nếu đăng xuất
-  if(to.fullPath=="/logout"){
+  if (to.fullPath == "/logout") {
     localStorage.removeItem("token")
-    router.push({name:'Login'})
+    router.push({ name: 'Login' })
   }
   //nếu router có yêu cầu authen
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     //Kiểm tra xem đã đăng nhập hay chưa nếu chưa thì đưa về trang đăng nhập
     try {
-
-      await httpClient.post('auth/authen')
-      next()
+      const meta = to.meta;
+      await httpClient.post('auth/authen',{isMaster:meta.isMaster || false})
     } catch (e) {
       console.log(e)
       //Đưa tới trang login
@@ -52,7 +49,6 @@ router.beforeEach(async (to, from, next) => {
         name: "Login"
       })
     }
-
   }
   next()
 });

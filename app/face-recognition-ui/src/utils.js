@@ -1,11 +1,12 @@
-export function mask(){
-    document.querySelector("#app-loading").style.visibility ='visible'
+export function mask() {
+  document.querySelector("#app-loading").style.visibility = 'visible'
 }
-export function unMask(){
-    document.querySelector("#app-loading").style.visibility ='hidden'
+export function unMask() {
+  document.querySelector("#app-loading").style.visibility = 'hidden'
 }
 
 export function parseJwt() {
+  try {
     let token = localStorage.getItem("token");
     let base64Url = token.split(".")[1];
     let base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
@@ -20,4 +21,7 @@ export function parseJwt() {
     );
 
     return JSON.parse(jsonPayload);
+  } catch (e) {
+    // console.log(e);
   }
+}

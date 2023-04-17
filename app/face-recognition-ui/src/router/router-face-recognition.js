@@ -4,6 +4,6 @@ export default [
         path: '/check-in',
         name: 'FaceRecognition',
         component: FaceRecognitiom,
-        meta: { requiresAuth: true },
+        meta: { requiresAuth: true ,isMaster:true},
     }
 ]
