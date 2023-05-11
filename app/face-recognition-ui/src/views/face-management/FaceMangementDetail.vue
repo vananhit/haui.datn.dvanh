@@ -154,7 +154,7 @@ export default {
 
 .page-container {
   width: 90%;
-  height: 80vh;
+ // height: 80vh;
   background-color: #ffff;
   border-radius: 12px;
   margin: 24px auto;

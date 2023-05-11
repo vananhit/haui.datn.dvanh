@@ -10,4 +10,4 @@ deepface.egg-info/
 tests/dataset/*.pkl
 tests/sandbox.ipynb
 *.pyc
-*.ini
+

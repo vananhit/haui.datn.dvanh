@@ -72,7 +72,15 @@ export default {
         let ans = await httpClient.post("/faces/recognition", formData);
         let data = ans.data
         if(data.face_score>=0.7){
-          this.openNotification(data.face_code)
+          let description = "";
+          if(data.spoofing.Label ==1){
+            description="Người thật"
+          }else{
+            description="Giả mạo"
+          } 
+          debugger
+          this.openNotification(data.face_code,description)
+          
         }
       } catch (e) {
         console.error("Error uploading image:", e);
@@ -81,11 +89,11 @@ export default {
     /***
      * Mở hộp thoại thông báo
      */
-    openNotification(title) {
+    openNotification(title, description) {
+      console.log(title,description)
       notification.open({
         message:title,
-        description:
-          "This is the content of the notification. This is the content of the notification. This is the content of the notification.",
+        description:description,
         icon: h(SmileOutlined, { style: "color: #108ee9" }),
       });
     },
